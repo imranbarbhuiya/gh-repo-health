@@ -1,0 +1,26 @@
+{
+  "name": "gh-repo-health",
+  "version": "1.1.0",
+  "description": "Audit every repository accessible through GitHub CLI for dependency freshness and security alerts.",
+  "type": "module",
+  "bin": { "gh-repo-health": "src/cli.js" },
+  "engines": { "node": "^22.11.0 || >=24.10.0" },
+  "scripts": {
+    "start": "node src/cli.js",
+    "dev": "node src/server.js",
+    "dashboard": "portless",
+    "snapshot": "node src/snapshot.js",
+    "test": "node --test",
+    "check": "node --check src/cli.js && node --check src/server.js && node --check src/snapshot.js && node --check dashboard/app.js && node --test"
+  },
+  "dependencies": {
+    "@renovatebot/pep440": "^5.0.1",
+    "@yarnpkg/lockfile": "^1.1.0",
+    "jsonc-parser": "^3.3.1",
+    "semver": "^7.7.2",
+    "smol-toml": "^1.9.0",
+    "yaml": "^2.8.1"
+  },
+  "license": "MIT",
+  "files": ["src", "dashboard", "portless.json", "README.md", "LICENSE"]
+}

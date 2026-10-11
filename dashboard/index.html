@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Search your GitHub repositories, review dependency updates, and prioritize vulnerability alerts.">
+  <title>Repository health</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to repositories</a>
+  <aside class="sidebar" aria-label="Workspace navigation">
+    <a class="brand" href="/" aria-label="Repository health home"><span class="brand-mark" aria-hidden="true">⌘</span><span>Repo health</span></a>
+    <div class="workspace"><span class="avatar" id="avatar">GH</span><div><strong id="account">Your GitHub account</strong><span>Repository workspace</span></div></div>
+    <nav id="navigation"></nav>
+    <div class="sidebar-note"><span class="local-dot"></span><strong>Local workspace</strong><p>Reports stay on this computer. Your existing GitHub login powers scans.</p></div>
+    <a class="sidebar-link" href="https://docs.github.com/en/code-security/dependabot/dependabot-alerts/about-dependabot-alerts" target="_blank" rel="noreferrer">About vulnerability alerts <span aria-hidden="true">↗</span></a>
+  </aside>
+  <div class="shell">
+    <header class="topbar"><div class="breadcrumb">Workspace <span aria-hidden="true">/</span> <strong>Repository health</strong></div><div class="topbar-actions"><span id="snapshot-label" hidden>Saved report</span><button class="button subtle" id="refresh">Refresh reports</button><button class="button primary" id="scan-open"><span aria-hidden="true">↻</span> Run scan</button></div></header>
+    <main id="main">
+      <section class="page-heading"><div><h1>Repository health</h1><p>Know what needs attention across your GitHub repositories.</p></div><span class="report-date" id="report-date">Loading reports…</span></section>
+      <div id="error" class="notice error" role="alert" hidden></div>
+      <section id="job" class="job-banner" aria-live="polite" hidden></section>
+      <section class="summary-ledger" id="summary" aria-label="Repository health summary"></section>
+      <section class="insights" aria-label="Security and audit coverage">
+        <div class="security-overview"><div class="section-heading"><h2>Open vulnerabilities</h2><span class="small-label" id="security-source">GitHub Dependabot</span></div><div id="severity"></div></div>
+        <div class="coverage-overview"><div class="section-heading"><h2>Audit coverage</h2><span id="coverage-fraction" class="small-label"></span></div><div id="coverage"></div></div>
+      </section>
+      <section class="repository-panel" aria-labelledby="list-heading">
+        <div class="panel-heading"><div><h2 id="list-heading">Repositories</h2><span id="list-description">Your accessible repository inventory</span></div><div class="export-actions"><button class="button" id="export-csv">Export CSV</button><button class="button" id="export-html">Save HTML</button><button class="button icon-button" id="export-json" aria-label="Export JSON report" title="Export JSON report">{ }</button></div></div>
+        <div class="tabs" id="tabs" role="group" aria-label="Repository category"></div>
+        <div class="filters">
+          <select id="mobile-view" aria-label="Repository view"><option value="all">All repositories</option><option value="critical">Critical alerts</option><option value="outdated">Outdated dependencies</option><option value="review">Coverage gaps</option><option value="pulls">Update pull requests</option></select>
+          <label class="search-box"><span aria-hidden="true">⌕</span><input type="search" id="search" placeholder="Search repositories…" aria-label="Search repositories"><kbd>/</kbd></label>
+          <select id="owner" aria-label="Filter by owner"><option value="">All owners</option></select>
+          <select id="language" aria-label="Filter by language"><option value="">All languages</option></select>
+          <select id="visibility" aria-label="Filter by visibility"><option value="">All visibility</option><option value="public">Public</option><option value="private">Private</option><option value="internal">Internal</option></select>
+          <label class="checkbox"><input type="checkbox" id="exclude-archived">Hide archived</label>
+          <button class="button subtle" id="reset">Reset</button>
+        </div>
+        <div class="table-scroll"><table class="repo-table"><thead><tr><th><button data-sort="name">Repository <span aria-hidden="true">↕</span></button></th><th><button data-sort="priority">Priority <span aria-hidden="true">↕</span></button></th><th><button data-sort="alerts">Alerts <span aria-hidden="true">↕</span></button></th><th><button data-sort="critical">Critical <span aria-hidden="true">↕</span></button></th><th><button data-sort="outdated">Dependencies <span aria-hidden="true">↕</span></button></th><th>Coverage</th><th><button data-sort="pushed">Last activity <span aria-hidden="true">↕</span></button></th><th><span class="sr-only">Open repository</span></th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div id="empty" class="empty-state" hidden><span class="empty-symbol" aria-hidden="true">⌕</span><h3>No repositories match</h3><p>Try a different search or clear your filters.</p><button class="button" id="empty-reset">Clear filters</button></div>
+        <footer class="table-footer"><span id="page-summary"></span><div><button class="button" id="previous">Previous</button><span id="page-number"></span><button class="button" id="next">Next</button></div></footer>
+      </section>
+      <p class="footnote">Unavailable counts are shown as “—”. Audit results describe the saved scan; repository access and alerts can change.</p>
+    </main>
+  </div>
+  <dialog id="detail" class="detail-dialog" aria-labelledby="detail-title"><div id="detail-content"></div></dialog>
+  <dialog id="scan-dialog" class="scan-dialog" aria-labelledby="scan-title"><form id="scan-form"><div class="dialog-heading"><h2 id="scan-title">Run a repository scan</h2><button class="button icon-button" type="button" data-close="scan-dialog" aria-label="Close scan options">×</button></div><p>Read current dependencies and GitHub alerts using your existing login.</p><fieldset><legend>Repositories to scan</legend><label class="radio-option"><input type="radio" name="scope" value="visible" checked><span>Current view<strong id="visible-count"></strong></span></label><label class="radio-option"><input type="radio" name="scope" value="all"><span>All accessible repositories<strong id="all-count"></strong></span></label></fieldset><label class="checkbox option"><input id="direct-only" type="checkbox">Only direct dependencies when their relationship is known</label><label class="checkbox option"><input id="code-scanning" type="checkbox">Include GitHub code scanning alerts</label><label class="checkbox option"><input id="resume" type="checkbox">Reuse recent successful results</label><p class="scan-hint">Large scans can take time. Progress is saved as repositories finish, and you can stop a scan at any point.</p><div class="dialog-footer"><button class="button" type="button" data-close="scan-dialog">Cancel</button><button class="button primary" id="scan-submit" type="submit">Start scan</button></div></form></dialog>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>
